@@ -194,13 +194,3 @@ curl -H "Authorization: Bearer SEU_TOKEN_AQUI" http://localhost:5000/users
 ```
 
 ---
-
-## 👨‍💻 Autor
-
-Projeto desenvolvido por [Seu Nome].
-
----
-
-## 📝 Licença
-
-Este projeto está licenciado sob a licença MIT.
