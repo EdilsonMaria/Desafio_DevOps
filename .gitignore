@@ -1,0 +1,57 @@
+# Dependências
+node_modules/
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Diretórios temporários
+tmp/
+temp/
+
+# Arquivos do sistema
+.DS_Store
+Thumbs.db
+
+# Diretórios de build
+dist/
+build/
+
+# Cache
+.nyc_output/
+coverage/
+.cache/
+.next/
+out/
+
+# Arquivos de depuração
+debug.log
+
+# IDEs e editores
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# Outros
+*.tgz
+.eslintcache
+
+# Arquivos de configuração local
+*.local
+
+# Banco de dados sqlite (se usado)
+*.sqlite
+*.sqlite3
