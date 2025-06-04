@@ -1,12 +1,9 @@
 const express = require("express");
 const cors = require("cors");
-const jwt = require("jsonwebtoken");
-const bcrypt = require("bcrypt");
 const { Pool } = require("pg");
 
 const app = express();
 const port = process.env.PORT || 5000;
-const JWT_SECRET = "segredo_super_secreto";
 
 const pool = new Pool({
   host: process.env.DB_HOST || "localhost",
@@ -19,8 +16,7 @@ const pool = new Pool({
 app.use(cors());
 app.use(express.json());
 
-// Criação da tabela, com tratamento de erro
-
+// Conexão com banco
 async function connectWithRetry() {
   const maxRetries = 10;
   let retries = 0;
@@ -40,33 +36,7 @@ async function connectWithRetry() {
 
 (async () => {
   await connectWithRetry();
-  try {
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS users (
-        id SERIAL PRIMARY KEY,
-        name VARCHAR(100),
-        email VARCHAR(100) UNIQUE,
-        password TEXT
-      );
-    `);
-    console.log("Tabela 'users' verificada/criada com sucesso.");
-  } catch (err) {
-    console.error("Erro ao criar/verificar a tabela 'users':", err);
-  }
 })();
-
-// Middleware de autenticação JWT
-function authenticateToken(req, res, next) {
-  const authHeader = req.headers["authorization"];
-  const token = authHeader && authHeader.split(" ")[1];
-  if (!token) return res.sendStatus(401);
-
-  jwt.verify(token, JWT_SECRET, (err, user) => {
-    if (err) return res.sendStatus(403);
-    req.user = user;
-    next();
-  });
-}
 
 // Registro de novo usuário
 app.post("/register", async (req, res) => {
@@ -77,10 +47,9 @@ app.post("/register", async (req, res) => {
   }
 
   try {
-    const hashed = await bcrypt.hash(password, 10);
     await pool.query(
       "INSERT INTO users (name, email, password) VALUES ($1, $2, $3)",
-      [name, email, hashed]
+      [name, email, password]
     );
     res.sendStatus(201);
   } catch (err) {
@@ -93,39 +62,8 @@ app.post("/register", async (req, res) => {
   }
 });
 
-// Login de usuário
-app.post("/login", async (req, res) => {
-  const { email, password } = req.body;
-
-  if (!email || !password) {
-    return res.status(400).send("Email e senha são obrigatórios");
-  }
-
-  try {
-    const result = await pool.query(
-      "SELECT * FROM users WHERE email = $1",
-      [email]
-    );
-    const user = result.rows[0];
-
-    if (user && await bcrypt.compare(password, user.password)) {
-      const token = jwt.sign(
-        { id: user.id, email: user.email },
-        JWT_SECRET,
-        { expiresIn: "1h" }
-      );
-      res.json({ token });
-    } else {
-      res.status(401).send("Credenciais inválidas");
-    }
-  } catch (err) {
-    console.error("Erro no login:", err);
-    res.status(500).send("Erro interno no servidor");
-  }
-});
-
-// Listagem de usuários (rota protegida)
-app.get("/users", authenticateToken, async (req, res) => {
+// Listagem de usuários (sem autenticação)
+app.get("/users", async (req, res) => {
   try {
     const result = await pool.query(
       "SELECT id, name, email FROM users ORDER BY id"
